@@ -24,18 +24,21 @@ def do_requests(event, stats, local_latency_stats):
         now_ms = time.time_ns() // 1_000_000
         
         url = f"{host_url_before_service}{event['ingress_service']}{host_url_after_service}"
-        logging.debug(f"POSTing trace '{event['trace_id']}' to '{url}'")
+        body = event['as_json']
+        logging.debug(f"POSTing trace '{event['trace_id']}'to '{url}' with body \n\t{body}")
 
         if dry_run:
             pending_requests.decrease()
             req_latency_ms = 1
             stats.append(f"{now_ms} \t {req_latency_ms} \t 200 \t {processed_requests.value} \t {pending_requests.value}")
         else:
-            r = requests.post(url, event['as_json'])
+            r = requests.post(url, body, headers={"Content-Type":"application/json"})
             pending_requests.decrease()
             
-            if r.status_code != 200:
-                logging.error(f"Response Status Code {r.status_code}")
+            if r.status_code == 200:
+                logging.debug(f"POST for {url} returned http status {r.status_code}")
+            else:
+                logging.error(f"POST for {url} returned http status {r.status_code}")
                 error_requests.increase()
 
             req_latency_ms = int(r.elapsed.total_seconds()*1000)
@@ -94,6 +97,7 @@ def file_runner(workload=None):
     futures = list()
 
     for event in workload:
+        # 'enter' takes the schedule time in seconds, so we divide our MS value by 1000.
         s.enter(event["timestamp"]/1000, 1, job_assignment, argument=(pool, futures, event, stats, local_latency_stats))
 
     start_time = time.time()
@@ -207,7 +211,7 @@ for cnt, workload_var in enumerate(workloads):
     logging.info("***************************************")
     try:
         result_file_name = f"{output_path}/{result_file}_{workload_var.split('/')[-1].split('.')[0]}.txt"
-        logging.debug("Writing results to file '{result_file_name}'")
+        logging.debug("Writing results to file '%s'", result_file_name)
         with open(result_file_name, "w") as f:
             f.writelines("\n".join(stats))
     except Exception as err:
@@ -217,4 +221,5 @@ for cnt, workload_var in enumerate(workloads):
 logging.info("###############################################")
 logging.info("###########   DONE Forrest DONE!!   ###########")
 logging.info("###############################################")
+time.sleep(1)
 exit(0)

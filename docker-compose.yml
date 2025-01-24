@@ -4,6 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    depends_on:
+      mock:
+        condition: service_healthy
     working_dir: /app
     command: 
       - /app/entrypoint.sh
@@ -11,7 +14,19 @@ services:
       - DEBUG
     tty: true
     volumes:
+      - ./src/CSVTraceRunner.py:/app/CSVTraceRunner.py
       # Files that are required by runtime
       - ./example/RunnerParameters.json:/app/RunnerParameters.json
       - ./example/traces.csv:/app/traces.csv
       - ./results:/app/results
+
+  mock:
+    image: wiremock/wiremock:latest
+    volumes:
+      - ./example/mock:/home/wiremock/mappings
+    healthcheck:
+      test: ["CMD-SHELL", "curl localhost:8080"]
+      interval: 2s
+      retries: 5
+      start_period: 10s
+      timeout: 1s
