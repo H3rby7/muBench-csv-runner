@@ -1,0 +1,17 @@
+# docker-compose for local testing
+services:
+  runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    command: 
+      - /app/entrypoint.sh
+      - --log-level
+      - DEBUG
+    tty: true
+    volumes:
+      # Files that are required by runtime
+      - ./example/RunnerParameters.json:/app/RunnerParameters.json
+      - ./example/traces.csv:/app/traces.csv
+      - ./results:/app/results
