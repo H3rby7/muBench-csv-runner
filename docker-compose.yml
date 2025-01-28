@@ -14,6 +14,7 @@ services:
       - DEBUG
     tty: true
     volumes:
+      # Mount .py file for convenience to test out local changes.
       - ./src/CSVTraceRunner.py:/app/CSVTraceRunner.py
       # Files that are required by runtime
       - ./example/RunnerParameters.json:/app/RunnerParameters.json
