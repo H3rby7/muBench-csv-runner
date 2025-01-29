@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mubench-service-cell
+  namespace: mubench
+  labels:
+    component: mubench
+spec:
+  endpoints:
+  - port: http-mubserviceport
+    scheme: http
+    path: /metrics
+  namespaceSelector:
+    matchNames:
+    - mubench
+  jobLabel: jobLabel
+  selector:
+    matchLabels:
+      component: mubench
+      type: service-cell

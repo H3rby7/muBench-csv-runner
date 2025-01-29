@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: csv-runner-params
+  labels:
+    benchmark: input
+data:
+  RunnerParameters.json: |
+    {
+      "RunnerParameters":{
+          "traces_file_path": "./traces.csv",
+          "deployment_ts_file_path": "./deployment_ts.csv",
+          "yaml_dir_path": "/k8s-yaml",
+          "k8s_namespace": "mubench",
+          "deployments_headstart_in_s": 30,
+          "csv_files_delimiter": "\t",
+          "url_before_service": "http://",
+          "url_after_service": ".mubench.svc.cluster.local/api/v1",
+          "dry_run": false,
+          "thread_pool_size": 10
+      },
+      "in_cluster": true,
+      "OutputPath": "./results",
+      "ResultFilePrefix": "result"
+    }
+

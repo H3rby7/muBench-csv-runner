@@ -1,14 +1,19 @@
 {
    "RunnerParameters":{
-      "workload_files_path_list": ["./traces.csv"],
+      "traces_file_path": "./traces.csv",
+      "deployment_ts_file_path": "./deployment_ts.csv",
+      "yaml_dir_path": "/k8s-yaml",
+      "k8s_namespace": "mubench",
+      "deployments_headstart_in_s": 5,
       "csv_files_delimiter": "\t",
-      "host_url_before_service": "http://mock:8080/",
-      "host_url_after_service": "/api/v1",
+      "url_before_service": "http://mock:8080/",
+      "url_after_service": "/api/v1",
       "dry_run": false,
-      "thread_pool_size": 4,
-      "result_file": "result"
+      "thread_pool_size": 4
    },
+   "in_cluster": false,
    "OutputPath": "./results",
+   "ResultFilePrefix": "result",
    "_AfterWorkloadFunction": {
       "_comment": "remove _ from the object name to execute the funcions",
       "file_path": "Function",

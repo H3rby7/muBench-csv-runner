@@ -10,9 +10,7 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-COPY src/Counter.py \
-     src/CSVTraceRunner.py \
-     src/TimingError.py \
+COPY src \
      entrypoint.sh \
      ./
 
