@@ -11,8 +11,9 @@
       "dry_run": false,
       "thread_pool_size": 4
    },
+   "in_cluster": false,
    "OutputPath": "./results",
-   "ResultFile": "result.csv",
+   "ResultFilePrefix": "result",
    "_AfterWorkloadFunction": {
       "_comment": "remove _ from the object name to execute the funcions",
       "file_path": "Function",

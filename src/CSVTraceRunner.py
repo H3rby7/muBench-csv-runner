@@ -13,6 +13,8 @@ import stats
 import argparse
 import argcomplete
 
+from kubernetes import config
+
 import CSVHelpers as CSVHelpers
 import K8sPrepare as K8sPrepare
 import TraceJob as TraceJob
@@ -111,8 +113,17 @@ run_after_workload = None
 try:
     with open(parameters_file_path) as f:
         params = json.load(f)
+
+    if params['in_cluster']:
+        logger.info("Using Kubernetes in_cluster config")
+        config.load_incluster_config()
+    else:
+        logger.info("Using Kubernetes file config")
+        config.load_kube_config()
+
     runner_parameters = params['RunnerParameters']
-    result_file = params["ResultFile"]  # number of repetition rounds
+
+    result_file_prefix = params["ResultFilePrefix"]
     if "OutputPath" in params.keys() and len(params["OutputPath"]) > 0:
         output_path = params["OutputPath"]
         if output_path.endswith("/"):
@@ -138,7 +149,8 @@ stats.processed_requests.value = 0
 stats.timing_error_requests.value = 0
 stats.error_requests.value = 0
 
-runner_results_file = f"{output_path}/{result_file}"
+timestr = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+runner_results_file = f"{output_path}/{result_file_prefix}_{timestr}.csv"
 file_runner(runner_parameters, runner_results_file)
 try:
     logging.debug("Writing results to file '%s'", runner_results_file)

@@ -1,4 +1,4 @@
-from kubernetes import client, config
+from kubernetes import client
 from kubernetes.client.rest import ApiException
 
 import json
@@ -9,8 +9,6 @@ import K8sYamlDeployer as K8sYamlDeployer
 
 import logging
 logger = logging.getLogger(__name__)
-
-config.load_kube_config()
 
 def prepare_namespace(k8s_namespace, yaml_dir_path):
     """
