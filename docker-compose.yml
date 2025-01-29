@@ -15,10 +15,21 @@ services:
     tty: true
     volumes:
       # Mount .py file for convenience to test out local changes.
+      - ./src/Counter.py:/app/Counter.py
+      - ./src/CSVHelpers.py:/app/CSVHelpers.py
       - ./src/CSVTraceRunner.py:/app/CSVTraceRunner.py
+      - ./src/DeployJob.py:/app/DeployJob.py
+      - ./src/K8sYamlDeployer.py:/app/K8sYamlDeployer.py
+      - ./src/K8sYamlFiles.py:/app/K8sYamlFiles.py
+      - ./src/stats.py:/app/stats.py
+      - ./src/TimingError.py:/app/TimingError.py
+      - ./src/TraceJob.py:/app/TraceJob.py
       # Files that are required by runtime
+      - ./.kube:/root/.kube
       - ./example/RunnerParameters.json:/app/RunnerParameters.json
       - ./example/traces.csv:/app/traces.csv
+      - ./example/deployment_ts.csv:/app/deployment_ts.csv
+      - ./example/k8s-yaml:/k8s-yaml
       - ./results:/app/results
 
   mock:

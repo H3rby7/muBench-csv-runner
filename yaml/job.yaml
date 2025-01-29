@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: builder
+        image: lujoka/mub-k8s:latest
+        imagePullPolicy: Always
+        command: ["/app/entrypoint.sh", "--log-level", "DEBUG", "-y"]
+        volumeMounts:
+        - name: dataset
+          mountPath: "/dataset"
+          readOnly: true
+        - name: k8s-yaml
+          mountPath: "/k8s-yaml"
+          readOnly: false
+      containers:
+      - name: deployer
+        image: lujoka/mub-k8s:latest
+        imagePullPolicy: Always
+        # TODO: support for deploy timeline
+        # command: ["/app/entrypoint.sh", "--log-level", "DEBUG"]
+      - name: runner
+        image: lujoka/mub-csv-runner:latest
+        imagePullPolicy: Always
+        command: ["/app/entrypoint.sh", "--log-level", "DEBUG"]
+        volumeMounts:
+        - name: dataset
+          mountPath: "/dataset"
+          readOnly: true
+        - name: k8s-yaml
+          mountPath: "/k8s-yaml"
+          readOnly: true
+      restartPolicy: Never
+      volumes:
+        # TODO: Evaluate - Write results to another local volume?
+        - name: dataset
+          persistentVolumeClaim:
+            claimName: dataset
+        - name: k8s-yaml
+          emptyDir: {}
+  backoffLimit: 4

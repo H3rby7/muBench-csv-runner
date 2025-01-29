@@ -1,0 +1,246 @@
+apiVersion: v1
+data:
+  workmodel.json: |
+    {
+      "ms-001": {
+        "external_services": [
+          {
+            "seq_len": 10000,
+            "services": []
+          }
+        ],
+        "internal_service": {
+          "loader": {
+            "cpu_stress": {
+              "run": true,
+              "range_complexity": [
+                1000,
+                1000
+              ],
+              "thread_pool_size": 1,
+              "trials": 1
+            },
+            "memory_stress": {
+              "run": false,
+              "memory_size": 10000,
+              "memory_io": 1000
+            },
+            "disk_stress": {
+              "run": false,
+              "tmp_file_name": "mubtestfile.txt",
+              "disk_write_block_count": 1000,
+              "disk_write_block_size": 1024
+            },
+            "sleep_stress": {
+              "run": false,
+              "sleep_time": 0.01
+            },
+            "mean_response_size": 11
+          }
+        },
+        "request_method": "rest",
+        "workers": 4,
+        "threads": 16,
+        "replicas": 1,
+        "cpu-limits": "100m",
+        "cpu-requests": "50m",
+        "url": "ms-001.mubench.svc.cluster.local",
+        "path": "/api/v1",
+        "image": "lujoka/mub-cell:0.1.1",
+        "namespace": "mubench"
+      },
+      "ms-002": {
+        "external_services": [
+          {
+            "seq_len": 10000,
+            "services": []
+          }
+        ],
+        "internal_service": {
+          "loader": {
+            "cpu_stress": {
+              "run": true,
+              "range_complexity": [
+                1000,
+                1000
+              ],
+              "thread_pool_size": 1,
+              "trials": 1
+            },
+            "memory_stress": {
+              "run": false,
+              "memory_size": 10000,
+              "memory_io": 1000
+            },
+            "disk_stress": {
+              "run": false,
+              "tmp_file_name": "mubtestfile.txt",
+              "disk_write_block_count": 1000,
+              "disk_write_block_size": 1024
+            },
+            "sleep_stress": {
+              "run": false,
+              "sleep_time": 0.01
+            },
+            "mean_response_size": 11
+          }
+        },
+        "request_method": "rest",
+        "workers": 4,
+        "threads": 16,
+        "replicas": 1,
+        "cpu-limits": "100m",
+        "cpu-requests": "50m",
+        "url": "ms-002.mubench.svc.cluster.local",
+        "path": "/api/v1",
+        "image": "lujoka/mub-cell:0.1.1",
+        "namespace": "mubench"
+      },
+      "ms-003": {
+        "external_services": [
+          {
+            "seq_len": 10000,
+            "services": []
+          }
+        ],
+        "internal_service": {
+          "loader": {
+            "cpu_stress": {
+              "run": true,
+              "range_complexity": [
+                1000,
+                1000
+              ],
+              "thread_pool_size": 1,
+              "trials": 1
+            },
+            "memory_stress": {
+              "run": false,
+              "memory_size": 10000,
+              "memory_io": 1000
+            },
+            "disk_stress": {
+              "run": false,
+              "tmp_file_name": "mubtestfile.txt",
+              "disk_write_block_count": 1000,
+              "disk_write_block_size": 1024
+            },
+            "sleep_stress": {
+              "run": false,
+              "sleep_time": 0.01
+            },
+            "mean_response_size": 11
+          }
+        },
+        "request_method": "rest",
+        "workers": 4,
+        "threads": 16,
+        "replicas": 1,
+        "cpu-limits": "100m",
+        "cpu-requests": "50m",
+        "url": "ms-003.mubench.svc.cluster.local",
+        "path": "/api/v1",
+        "image": "lujoka/mub-cell:0.1.1",
+        "namespace": "mubench"
+      },
+      "ms-004": {
+        "external_services": [
+          {
+            "seq_len": 10000,
+            "services": []
+          }
+        ],
+        "internal_service": {
+          "loader": {
+            "cpu_stress": {
+              "run": true,
+              "range_complexity": [
+                1000,
+                1000
+              ],
+              "thread_pool_size": 1,
+              "trials": 1
+            },
+            "memory_stress": {
+              "run": false,
+              "memory_size": 10000,
+              "memory_io": 1000
+            },
+            "disk_stress": {
+              "run": false,
+              "tmp_file_name": "mubtestfile.txt",
+              "disk_write_block_count": 1000,
+              "disk_write_block_size": 1024
+            },
+            "sleep_stress": {
+              "run": false,
+              "sleep_time": 0.01
+            },
+            "mean_response_size": 11
+          }
+        },
+        "request_method": "rest",
+        "workers": 4,
+        "threads": 16,
+        "replicas": 1,
+        "cpu-limits": "100m",
+        "cpu-requests": "50m",
+        "url": "ms-004.mubench.svc.cluster.local",
+        "path": "/api/v1",
+        "image": "lujoka/mub-cell:0.1.1",
+        "namespace": "mubench"
+      },
+      "ms-005": {
+        "external_services": [
+          {
+            "seq_len": 10000,
+            "services": []
+          }
+        ],
+        "internal_service": {
+          "loader": {
+            "cpu_stress": {
+              "run": true,
+              "range_complexity": [
+                1000,
+                1000
+              ],
+              "thread_pool_size": 1,
+              "trials": 1
+            },
+            "memory_stress": {
+              "run": false,
+              "memory_size": 10000,
+              "memory_io": 1000
+            },
+            "disk_stress": {
+              "run": false,
+              "tmp_file_name": "mubtestfile.txt",
+              "disk_write_block_count": 1000,
+              "disk_write_block_size": 1024
+            },
+            "sleep_stress": {
+              "run": false,
+              "sleep_time": 0.01
+            },
+            "mean_response_size": 11
+          }
+        },
+        "request_method": "rest",
+        "workers": 4,
+        "threads": 16,
+        "replicas": 1,
+        "cpu-limits": "100m",
+        "cpu-requests": "50m",
+        "url": "ms-005.mubench.svc.cluster.local",
+        "path": "/api/v1",
+        "image": "lujoka/mub-cell:0.1.1",
+        "namespace": "mubench"
+      }
+    }
+kind: ConfigMap
+metadata:
+  name: workmodel
+  namespace: mubench
+  labels:
+    component: mubench

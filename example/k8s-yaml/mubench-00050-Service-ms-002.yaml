@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-002
+  namespace: mubench
+  labels:
+    app: ms-002
+    component: mubench
+    type: service-cell
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http-mubserviceport
+  - port: 51313
+    targetPort: 51313
+    name: grpc-mubserviceport
+  selector:
+    app: ms-002
