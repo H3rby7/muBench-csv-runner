@@ -12,7 +12,7 @@ spec:
       - name: builder
         image: lujoka/mub-k8s-templater:latest
         imagePullPolicy: Always
-        command: ["/app/entrypoint.sh", "--log-level", "DEBUG", "-y"]
+        command: ["/app/entrypoint.sh", "--config-file", "/builder-config/K8sParameters.json", "--log-level", "DEBUG", "-y"]
         volumeMounts:
         - name: dataset
           mountPath: "/dataset"
@@ -25,7 +25,7 @@ spec:
         image: lujoka/mub-csv-runner:latest
         imagePullPolicy: Always
         # The actual command
-        # command: ["/app/entrypoint.sh"]
+        # command: ["/app/entrypoint.sh", "--config-file", "/runner-config/RunnerParameters.json"]
         # Sleep command so we can exec into the container and see all file paths work
         command: ["/bin/bash", "-c", "--"]
         args: [ "while true; do sleep 30; done;" ]
@@ -37,7 +37,13 @@ spec:
           mountPath: "/k8s-yaml"
           readOnly: true
         - name: runner-params
-          mountPath: "/config"
+          mountPath: "/runner-config"
+        - name: k8s-params
+          mountPath: "/builder-config"
+          readOnly: true
+        - name: internal-services
+          mountPath: "/InternalServiceFunctions"
+          readOnly: true
         - name: result
           mountPath: "/result"
           readOnly: false
@@ -54,4 +60,10 @@ spec:
         - name: runner-params
           configMap:
             name: csv-runner-params
+        - name: k8s-params
+          configMap:
+            name: k8s-params
+        - name: internal-services
+          configMap:
+            name: internal-services
   backoffLimit: 1

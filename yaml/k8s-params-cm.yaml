@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-params
+  labels:
+    benchmark: input
+data:
+  K8sParameters.json: |
+    {
+      "K8sParameters": {
+          "prefix_yaml_file":"mubench",
+          "namespace": "mubench",
+          "image": "lujoka/mub-cell:0.1.1",
+          "cluster_domain": "cluster",
+          "path": "/api/v1",
+          "dns-resolver":"kube-dns.kube-system.svc.cluster.local",
+          "scheduler-name": "default-scheduler",
+          "service-type": "ClusterIP",
+          "create-ingress": true,
+          "create-service-monitor": true
+      },
+      "InternalServiceFilePath": "/InternalServiceFunctions",
+      "OutputPath": "/generated",
+      "WorkModelPath": "workmodel.json"
+    }
