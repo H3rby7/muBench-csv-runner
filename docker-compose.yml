@@ -11,7 +11,7 @@ services:
     command: 
       - /app/entrypoint.sh
       - --log-level
-      - DEBUG
+      - INFO
     tty: true
     volumes:
       # Mount .py file for convenience to test out local changes.
@@ -19,6 +19,7 @@ services:
       - ./src/CSVHelpers.py:/app/CSVHelpers.py
       - ./src/CSVTraceRunner.py:/app/CSVTraceRunner.py
       - ./src/DeployJob.py:/app/DeployJob.py
+      - ./src/K8sPrepare.py:/app/K8sPrepare.py
       - ./src/K8sYamlDeployer.py:/app/K8sYamlDeployer.py
       - ./src/K8sYamlFiles.py:/app/K8sYamlFiles.py
       - ./src/stats.py:/app/stats.py

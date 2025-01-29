@@ -3,6 +3,7 @@
       "traces_file_path": "./traces.csv",
       "deployment_ts_file_path": "./deployment_ts.csv",
       "yaml_dir_path": "/k8s-yaml",
+      "k8s_namespace": "mubench",
       "deployments_headstart_in_s": 5,
       "csv_files_delimiter": "\t",
       "url_before_service": "http://mock:8080/",

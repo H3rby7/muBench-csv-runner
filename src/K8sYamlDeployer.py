@@ -30,7 +30,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from kubernetes import client, config, utils
+from kubernetes import client
 from kubernetes.client.rest import ApiException
 import yaml
 import json
@@ -43,7 +43,6 @@ def deploy_items(file_paths):
     """
     Deploy file_paths (yamls) to Kubernetes
     """
-    config.load_kube_config()
 
     for yaml_path in file_paths:
         with open(yaml_path) as f:
@@ -54,38 +53,44 @@ def deploy_items(file_paths):
 def deploy_yaml(yaml):
     """
     Deploy the given yaml file
+
+    Supported YAML kinds:
+    * Deployment
+    * Service
+    * Ingress
+    * ConfigMap
+    * ServiceMonitor
     """
-    k8s_apps_api = client.AppsV1Api()
-    k8s_core_api = client.CoreV1Api()
+    meta_ns = yaml["metadata"]["namespace"]
+    meta_name = yaml["metadata"]["name"]
+
     try:
         if yaml["kind"] == "Deployment":
-            k8s_apps_api.create_namespaced_deployment(namespace=yaml["metadata"]["namespace"], body=yaml)
-            dn=yaml['metadata']['name']
-            api_response = k8s_apps_api.read_namespaced_deployment_status(name=yaml['metadata']['name'], namespace=yaml["metadata"]["namespace"], pretty=True)
-            while (api_response.status.ready_replicas != api_response.status.replicas):
-                logger.debug(f"\n *** Waiting deployment {dn} ready ...*** \n")
-                time.sleep(5)
-                api_response = k8s_apps_api.read_namespaced_deployment_status(name=yaml['metadata']['name'], namespace=yaml["metadata"]["namespace"], pretty=True)
-            logger.info(f"Deployment {dn} created.")
-            logger.info("---")
+            k8s_apps_api = client.AppsV1Api()
+            k8s_apps_api.create_namespaced_deployment(namespace=meta_ns, body=yaml)
+            # api_response = k8s_apps_api.read_namespaced_deployment_status(name=meta_name, namespace=meta_ns)
+            # while (api_response.status.ready_replicas != api_response.status.replicas):
+            #     logger.debug(f"\n *** Waiting deployment {meta_name} ready ...*** \n")
+            #     time.sleep(5)
+            #     api_response = k8s_apps_api.read_namespaced_deployment_status(name=meta_name, namespace=meta_ns)
+            logger.debug(f"Deployment {meta_name} created.")
         elif yaml["kind"] == "Service":
-            k8s_core_api.create_namespaced_service(namespace=yaml["metadata"]["namespace"], body=yaml)
-            logger.info(f"Service '{yaml['metadata']['name']}' created.")
-            logger.info("---")
-        # TODO: Proper API call to deploy Ingress
-        # elif yaml["kind"] == "Ingress":
-        #     k8s_core_api.create_namespaced_ingress(namespace=yaml["metadata"]["namespace"], body=yaml)
-        #     logger.info(f"Ingress '{yaml['metadata']['name']}' created.")
-        #     logger.info("---")
+            k8s_core_api = client.CoreV1Api()
+            k8s_core_api.create_namespaced_service(namespace=meta_ns, body=yaml)
+            logger.debug(f"Service '{meta_name}' created.")
+        elif yaml["kind"] == "Ingress":
+            k8s_networking_api = client.NetworkingV1Api()
+            k8s_networking_api.create_namespaced_ingress(namespace=meta_ns, body=yaml)
+            logger.debug(f"Ingress '{meta_name}' created.")
         elif yaml["kind"] == "ConfigMap":
-                k8s_core_api.create_namespaced_config_map(namespace=yaml["metadata"]["namespace"], body=yaml)
-                logger.info(f"ConfigMap '{yaml['metadata']['name']}' created.")
+                k8s_core_api = client.CoreV1Api()
+                k8s_core_api.create_namespaced_config_map(namespace=meta_ns, body=yaml)
+                logger.debug(f"ConfigMap '{meta_name}' created.")
+        elif yaml["kind"] == "ServiceMonitor":
+                k8s_crd_api = client.CustomObjectsApi()
+                k8s_crd_api.create_namespaced_custom_object(group="monitoring.coreos.com", version="v1", plural="servicemonitors", namespace=meta_ns, body=yaml)
+                logger.info(f"ServiceMonitor '{meta_name}' created.")
                 logger.info("---")
-        # TODO: Proper API call to deploy ServiceMonitor
-        # elif yaml["kind"] == "ServiceMonitor":
-        #         k8s_core_api.create_namespaced_config_map(namespace=yaml["metadata"]["namespace"], body=yaml)
-        #         logger.info(f"ServiceMonitor '{yaml['metadata']['name']}' created.")
-        #         logger.info("---")
     except ApiException as err:
         api_exception_body = json.loads(err.body)
         logger.error(f"Exception raised deploying a {yaml['kind']}: {api_exception_body['details']} -> {api_exception_body['reason']}")

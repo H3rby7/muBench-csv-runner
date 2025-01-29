@@ -1,5 +1,3 @@
 argcomplete==1.12.3
-charset-normalizer==2.0.5
-kubernetes==18.20.0
-PyYAML==5.4.1
+kubernetes==32.0.0
 requests==2.26.0

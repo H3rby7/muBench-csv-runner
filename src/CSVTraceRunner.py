@@ -14,8 +14,7 @@ import argparse
 import argcomplete
 
 import CSVHelpers as CSVHelpers
-import K8sYamlFiles as K8sYamlFiles
-import K8sYamlDeployer as K8sYamlDeployer
+import K8sPrepare as K8sPrepare
 import TraceJob as TraceJob
 import DeployJob as DeployJob
 
@@ -29,6 +28,7 @@ def file_runner(runner_parameters, runner_results_file):
     deployment_ts_file_path = runner_parameters["deployment_ts_file_path"] # deployment_ts.csv file path
     deployments_headstart_in_s = runner_parameters["deployments_headstart_in_s"] # headstart for deployments prior to the first use of the service
     yaml_dir_path = runner_parameters["yaml_dir_path"] # traces.csv file path
+    k8s_namespace = runner_parameters["k8s_namespace"] # experiment namespace in kubernetes
     csv_files_delimiter = runner_parameters["csv_files_delimiter"]
     thread_pool_size = runner_parameters['thread_pool_size']
 
@@ -41,10 +41,7 @@ def file_runner(runner_parameters, runner_results_file):
     pool = ThreadPoolExecutor(thread_pool_size)
     futures = list()
 
-    logging.info("Deploying generic YAMLS")
-    generic_yamls = K8sYamlFiles.get_generic_yamls(yaml_dir_path)
-    logging.debug(f"Deploying generic YAMLs -> {generic_yamls}")
-    K8sYamlDeployer.deploy_items(generic_yamls)
+    K8sPrepare.prepare_namespace(k8s_namespace, yaml_dir_path)
 
     logging.info("Reading in and scheduling deployments")
     deployment_ts = CSVHelpers.read_deployment_csv(deployment_ts_file_path, csv_files_delimiter)
