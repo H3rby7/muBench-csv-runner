@@ -10,7 +10,7 @@ spec:
       serviceAccountName: benchmark-sa
       initContainers:
       - name: builder
-        image: lujoka/mub-k8s:latest
+        image: lujoka/mub-k8s-templater:latest
         imagePullPolicy: Always
         command: ["/app/entrypoint.sh", "--log-level", "DEBUG", "-y"]
         volumeMounts:
