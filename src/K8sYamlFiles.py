@@ -15,8 +15,9 @@ def get_yamls_for_svc(svc_name, yaml_dir):
     items = list()
     for r, d, f in os.walk(yaml_dir):
         for file in f:
-            if f"ms-{svc_name}.yaml" in file:
+            if f"{svc_name}.yaml" in file:
                 items.append(os.path.join(r, file))
+    logger.debug(f"Found YAML files for service '{svc_name}': '{items}'")
     return items
 
 def get_generic_yamls(yaml_dir):
@@ -33,4 +34,5 @@ def get_generic_yamls(yaml_dir):
                 continue
             if f".yaml" in file:
                 items.append(os.path.join(r, file))
+    logger.debug(f"Found generic YAML files '{items}'")
     return items
