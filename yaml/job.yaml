@@ -1,10 +1,13 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: pi
+  name: cloud-ee-benchmarking
+  labels:
+    benchmark: input
 spec:
   template:
     spec:
+      serviceAccountName: benchmark-sa
       initContainers:
       - name: builder
         image: lujoka/mub-k8s:latest
@@ -18,15 +21,14 @@ spec:
           mountPath: "/k8s-yaml"
           readOnly: false
       containers:
-      - name: deployer
-        image: lujoka/mub-k8s:latest
-        imagePullPolicy: Always
-        # TODO: support for deploy timeline
-        # command: ["/app/entrypoint.sh", "--log-level", "DEBUG"]
       - name: runner
         image: lujoka/mub-csv-runner:latest
         imagePullPolicy: Always
-        command: ["/app/entrypoint.sh", "--log-level", "DEBUG"]
+        # The actual command
+        # command: ["/app/entrypoint.sh"]
+        # Sleep command so we can exec into the container and see all file paths work
+        command: ["/bin/bash", "-c", "--"]
+        args: [ "while true; do sleep 30; done;" ]
         volumeMounts:
         - name: dataset
           mountPath: "/dataset"
@@ -34,12 +36,22 @@ spec:
         - name: k8s-yaml
           mountPath: "/k8s-yaml"
           readOnly: true
+        - name: runner-params
+          mountPath: "/config"
+        - name: result
+          mountPath: "/result"
+          readOnly: false
       restartPolicy: Never
       volumes:
-        # TODO: Evaluate - Write results to another local volume?
         - name: dataset
           persistentVolumeClaim:
             claimName: dataset
+        - name: result
+          persistentVolumeClaim:
+            claimName: result
         - name: k8s-yaml
           emptyDir: {}
-  backoffLimit: 4
+        - name: runner-params
+          configMap:
+            name: csv-runner-params
+  backoffLimit: 1
