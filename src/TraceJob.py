@@ -34,6 +34,7 @@ import time
 from TimingError import TimingError
 import requests
 import stats
+import Metrics
 
 import logging
 logger = logging.getLogger(__name__)
@@ -49,18 +50,21 @@ def run_trace_job(runner_parameters, trace_item, local_stats, local_latency_stat
     url_before_service = runner_parameters['url_before_service']
     url_after_service = runner_parameters['url_after_service']
     dry_run = runner_parameters['dry_run']
+    service = trace_item['ingress_service']
 
     stats.processed_requests.increase()
     try:
         now_ms = time.time_ns() // 1_000_000
         
-        url = f"{url_before_service}{trace_item['ingress_service']}{url_after_service}"
+        url = f"{url_before_service}{service}{url_after_service}"
         body = trace_item['as_json']
         logging.debug(f"POSTing trace '{trace_item['trace_id']}'to '{url}' with body \n\t{body}")
 
         if dry_run:
             stats.pending_requests.decrease()
             req_latency_ms = 1
+
+            Metrics.REQUEST_LATENCY_MS.labels(service).observe(req_latency_ms)
             local_stats.append(f"{now_ms} \t {req_latency_ms} \t 200 \t {stats.processed_requests.value} \t {stats.pending_requests.value}")
         else:
             r = requests.post(url, body, headers={"Content-Type":"application/json"})
@@ -73,6 +77,8 @@ def run_trace_job(runner_parameters, trace_item, local_stats, local_latency_stat
                 stats.error_requests.increase()
 
             req_latency_ms = int(r.elapsed.total_seconds()*1000)
+
+            Metrics.REQUEST_LATENCY_MS.labels(service).observe(req_latency_ms)
             local_stats.append(f"{now_ms} \t {req_latency_ms} \t {r.status_code} \t {stats.processed_requests.value} \t {stats.pending_requests.value}")
         
         local_latency_stats.append(req_latency_ms)

@@ -13,6 +13,8 @@ services:
       - --log-level
       - INFO
     tty: true
+    ports:
+      - 8080:8080
     volumes:
       ############ Mount .py files for convenience to test out local changes. ############
       - ./src/Counter.py:/app/Counter.py
@@ -22,6 +24,7 @@ services:
       - ./src/K8sPrepare.py:/app/K8sPrepare.py
       - ./src/K8sYamlDeployer.py:/app/K8sYamlDeployer.py
       - ./src/K8sYamlFiles.py:/app/K8sYamlFiles.py
+      - ./src/Metrics.py:/app/Metrics.py
       - ./src/stats.py:/app/stats.py
       - ./src/TimingError.py:/app/TimingError.py
       - ./src/TraceJob.py:/app/TraceJob.py

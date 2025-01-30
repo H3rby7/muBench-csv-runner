@@ -9,6 +9,7 @@ import os
 import importlib
 
 import stats
+import Metrics
 
 import argparse
 import argcomplete
@@ -156,7 +157,13 @@ stats.error_requests.value = 0
 
 timestr = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 runner_results_file = f"{output_path}/{result_file_prefix}_{timestr}.csv"
+
+Metrics.start_server(8080)
+
+# file_runner is a blocking call
 file_runner(runner_parameters, runner_results_file)
+# so the code after this is executed when file_runner is done.
+
 try:
     logging.debug("Writing results to file '%s'", runner_results_file)
     with open(runner_results_file, "w") as f:
@@ -170,5 +177,6 @@ except Exception as err:
 logging.info("###############################################")
 logging.info("###########   DONE Forrest DONE!!   ###########")
 logging.info("###############################################")
-time.sleep(1)
+# TODO: Set back to smaller value when done testing metrics endpoint
+time.sleep(120)
 exit(0)
