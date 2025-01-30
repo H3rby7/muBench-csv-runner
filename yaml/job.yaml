@@ -9,23 +9,11 @@ spec:
     spec:
       serviceAccountName: benchmark-sa
       initContainers:
-      - name: builder
+      - name: workmodel-gen
         image: lujoka/mub-k8s-templater:latest
         imagePullPolicy: Always
-        command: ["/app/entrypoint.sh", "--config-file", "/builder-config/K8sParameters.json", "--log-level", "DEBUG", "-y"]
-        volumeMounts:
-        - name: dataset
-          mountPath: "/dataset"
-          readOnly: true
-        - name: k8s-yaml
-          mountPath: "/k8s-yaml"
-          readOnly: false
-      containers:
-      - name: runner
-        image: lujoka/mub-csv-runner:latest
-        imagePullPolicy: Always
         # The actual command
-        # command: ["/app/entrypoint.sh", "--config-file", "/runner-config/RunnerParameters.json"]
+        # command: ["/app/entrypoint.sh", "--config-file", "/config/K8sParameters.json", "--log-level", "DEBUG", "-y"]
         # Sleep command so we can exec into the container and see all file paths work
         command: ["/bin/bash", "-c", "--"]
         args: [ "while true; do sleep 30; done;" ]
@@ -33,17 +21,51 @@ spec:
         - name: dataset
           mountPath: "/dataset"
           readOnly: true
-        - name: k8s-yaml
-          mountPath: "/k8s-yaml"
-          readOnly: true
-        - name: runner-params
-          mountPath: "/runner-config"
+        - name: podshared
+          mountPath: "/podshared"
+          readOnly: false
         - name: k8s-params
-          mountPath: "/builder-config"
+          mountPath: "/config"
+          readOnly: true
+      - name: templater
+        image: lujoka/mub-k8s-templater:latest
+        imagePullPolicy: Always
+        # The actual command
+        # command: ["/app/entrypoint.sh", "--config-file", "/config/K8sParameters.json", "--log-level", "DEBUG", "-y"]
+        # Sleep command so we can exec into the container and see all file paths work
+        command: ["/bin/bash", "-c", "--"]
+        args: [ "while true; do sleep 30; done;" ]
+        volumeMounts:
+        - name: dataset
+          mountPath: "/dataset"
+          readOnly: true
+        - name: podshared
+          mountPath: "/podshared"
+          readOnly: false
+        - name: k8s-params
+          mountPath: "/config"
           readOnly: true
         - name: internal-services
           mountPath: "/InternalServiceFunctions"
           readOnly: true
+      containers:
+      - name: runner
+        image: lujoka/mub-csv-runner:latest
+        imagePullPolicy: Always
+        # The actual command
+        # command: ["/app/entrypoint.sh", "--config-file", "/config/RunnerParameters.json"]
+        # Sleep command so we can exec into the container and see all file paths work
+        command: ["/bin/bash", "-c", "--"]
+        args: [ "while true; do sleep 30; done;" ]
+        volumeMounts:
+        - name: dataset
+          mountPath: "/dataset"
+          readOnly: true
+        - name: podshared
+          mountPath: "/podshared"
+          readOnly: true
+        - name: runner-params
+          mountPath: "/config"
         - name: result
           mountPath: "/result"
           readOnly: false
@@ -55,7 +77,7 @@ spec:
         - name: result
           persistentVolumeClaim:
             claimName: result
-        - name: k8s-yaml
+        - name: podshared
           emptyDir: {}
         - name: runner-params
           configMap:

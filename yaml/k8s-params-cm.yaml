@@ -20,6 +20,6 @@ data:
           "create-service-monitor": true
       },
       "InternalServiceFilePath": "/InternalServiceFunctions",
-      "OutputPath": "/generated",
-      "WorkModelPath": "workmodel.json"
+      "OutputPath": "/podshared",
+      "WorkModelPath": "/podshared/workmodel.json"
     }
