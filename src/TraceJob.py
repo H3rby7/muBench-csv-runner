@@ -51,14 +51,14 @@ def run_trace_job(runner_parameters, trace_item, local_stats, local_latency_stat
     url_before_service = runner_parameters['url_before_service']
     url_after_service = runner_parameters['url_after_service']
     dry_run = runner_parameters['dry_run']
-    service = trace_item['ingress_service']
+    ingress = trace_item['ingress_service']
 
     stats.processed_requests.increase()
     Metrics.PROCESSED_REQUESTS.inc()
     try:
         now_ms = time.time_ns() // 1_000_000
         
-        url = f"{url_before_service}{service}{url_after_service}"
+        url = f"{url_before_service}{ingress}{url_after_service}"
         body = trace_item['as_json']
         logging.debug(f"POSTing trace '{trace_item['trace_id']}'to '{url}' with body \n\t{body}")
 
@@ -88,7 +88,7 @@ def run_trace_job(runner_parameters, trace_item, local_stats, local_latency_stat
             stats.error_requests.increase()
             Metrics.ERROR_REQUESTS.inc()
 
-        Metrics.REQUEST_LATENCY_MS.observe(req_latency_ms)
+        Metrics.REQUEST_LATENCY_MS.labels(ingress).observe(req_latency_ms)
         local_stats.append(f"{now_ms} \t {req_latency_ms} \t {r_status} \t {stats.processed_requests.value} \t {stats.pending_requests.value}")
         
         local_latency_stats.append(req_latency_ms)

@@ -7,7 +7,7 @@ global registry
 registry = CollectorRegistry()
 
 global REQUEST_LATENCY_MS
-REQUEST_LATENCY_MS = Summary('mub_request_latency_milliseconds', 'Request Latency (user perspective)', registry=registry, unit='millis')
+REQUEST_LATENCY_MS = Summary('mub_request_latency_milliseconds', 'Request Latency (user perspective)', labelnames=["ingress"], registry=registry, unit='millis')
 
 global PENDING_REQUESTS
 PENDING_REQUESTS = Gauge('mub_pending_requests', 'Ongoing requests (user perspective, waiting for response)', registry=registry)
