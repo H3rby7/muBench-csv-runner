@@ -12,12 +12,24 @@ EXPERIMENT_MS_COUNT = Gauge('mub_experiment_ms_count', 'How many microservices a
 global EXPERIMENT_TRACE_COUNT
 EXPERIMENT_TRACE_COUNT = Gauge('mub_experiment_trace_count', 'How many traces are used in the experiment', registry=registry)
 
+global START_TIME_DEPLOYMENTS
+START_TIME_DEPLOYMENTS = Gauge('mub_experiment_start_time_deployments', '', registry=registry, unit='seconds')
+
+global START_TIME_TRACES
+START_TIME_TRACES = Gauge('mub_experiment_start_time_traces', '', registry=registry, unit='seconds')
+
+global FINISHED_TIME
+FINISHED_TIME = Gauge('mub_experiment_finished_time', '', registry=registry, unit='seconds')
+
+global FINISHED_TIME_ESTIMATED
+FINISHED_TIME_ESTIMATED = Gauge('mub_experiment_finished_time_estimated', '', registry=registry, unit='seconds')
+
 # TODO: Will need to see how this performs with thousands of services. Might need to remove the 'service' label
 global DEPLOYED_SERVICES
 DEPLOYED_SERVICES = Counter('mub_deployed_services', 'Deployed Services', labelnames=["service"], registry=registry)
 
 global REQUEST_LATENCY_MS
-REQUEST_LATENCY_MS = Summary('mub_request_latency_milliseconds', 'Request Latency (user perspective)', labelnames=["ingress"], registry=registry, unit='millis')
+REQUEST_LATENCY_MS = Summary('mub_request_latency', 'Request Latency (user perspective)', labelnames=["ingress"], registry=registry, unit='milliseconds')
 
 global PENDING_REQUESTS
 PENDING_REQUESTS = Gauge('mub_pending_requests', 'Ongoing requests (user perspective, waiting for response)', registry=registry)

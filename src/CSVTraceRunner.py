@@ -61,21 +61,37 @@ def file_runner(runner_parameters, runner_results_file):
     logging.info("Reading in and scheduling traces")
     workload = CSVHelpers.read_trace_csv(traces_file_path, csv_files_delimiter)
     Metrics.EXPERIMENT_TRACE_COUNT.set(len(workload))
+    max_ev_ts = 0
     for event in workload:
         # 'enter' takes the schedule time in seconds, so we divide our MS value by 1000.
         # Also delay trace scheduling by 'deployments_headstart_in_s' to ensure services are ready.
         ev_ts = (event["timestamp"]/1000) + deployments_headstart_in_s
+        if (ev_ts > max_ev_ts):
+            max_ev_ts = ev_ts
         s.enter(ev_ts, 2, TraceJob.run_trace_cb, argument=(runner_parameters, pool, futures, event, local_stats, local_latency_stats))
 
     start_time = time.time()
-    timestr = datetime.fromtimestamp(start_time).strftime("%H:%M:%S.%f - %g/%m/%Y")
+    Metrics.START_TIME_DEPLOYMENTS.set(start_time)
+    logging.info("Start Time: %s", datetime.fromtimestamp(start_time).strftime("%H:%M:%S.%f - %g/%m/%Y"))
 
-    logging.info("Start Time: %s", timestr)
     logging.info(f"Deployments headstart is {deployments_headstart_in_s} seconds")
+
+    trace_start_time = start_time + deployments_headstart_in_s
+    Metrics.START_TIME_TRACES.set(trace_start_time)
+    logging.info("Estimated trace start: %s", datetime.fromtimestamp(trace_start_time).strftime("%H:%M:%S.%f - %g/%m/%Y"))
+
+    finished_time_estimated = start_time + max_ev_ts
+    Metrics.FINISHED_TIME_ESTIMATED.set(finished_time_estimated)
+    logging.info("Estimated duration (sec): %.0f", max_ev_ts)
+    logging.info("Estimated end time: %s", datetime.fromtimestamp(finished_time_estimated).strftime("%H:%M:%S.%f - %g/%m/%Y"))
     s.run()
 
     wait(futures)
-    run_duration_sec = time.time() - start_time
+
+    finished_time = time.time()
+    Metrics.FINISHED_TIME.set(finished_time)
+
+    run_duration_sec = finished_time - start_time
     avg_latency = 1.0*sum(local_latency_stats)/len(local_latency_stats)
 
     logging.info("###############################################")
