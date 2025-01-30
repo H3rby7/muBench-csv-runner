@@ -1,6 +1,8 @@
 import K8sYamlDeployer as K8sYamlDeployer
 import K8sYamlFiles as K8sYamlFiles
 
+import Metrics
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -17,6 +19,7 @@ def deploy_svc_job(runner_parameters, svc_name):
             logging.debug("Dry-run, not deploying...")
         else:
             K8sYamlDeployer.deploy_items(list_of_yamls)
+        Metrics.DEPLOYED_SERVICES.labels(svc_name).inc()
     except Exception as err:
         logging.error("Error: %s" % err)
 

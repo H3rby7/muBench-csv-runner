@@ -6,6 +6,10 @@ logger = logging.getLogger(__name__)
 global registry
 registry = CollectorRegistry()
 
+# TODO: Will need to see how this performs with thousands of services. Might need to remove the 'service' label
+global DEPLOYED_SERVICES
+DEPLOYED_SERVICES = Counter('mub_deployed_services', 'Deployed Services', labelnames=["service"], registry=registry)
+
 global REQUEST_LATENCY_MS
 REQUEST_LATENCY_MS = Summary('mub_request_latency_milliseconds', 'Request Latency (user perspective)', labelnames=["ingress"], registry=registry, unit='millis')
 
