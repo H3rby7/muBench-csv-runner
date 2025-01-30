@@ -197,6 +197,5 @@ except Exception as err:
 logging.info("###############################################")
 logging.info("###########   DONE Forrest DONE!!   ###########")
 logging.info("###############################################")
-# TODO: Set back to smaller value when done testing metrics endpoint
-time.sleep(120)
+time.sleep(1)
 exit(0)
