@@ -35,6 +35,7 @@ from TimingError import TimingError
 import requests
 import stats
 import Metrics
+import random
 
 import logging
 logger = logging.getLogger(__name__)
@@ -61,25 +62,25 @@ def run_trace_job(runner_parameters, trace_item, local_stats, local_latency_stat
         logging.debug(f"POSTing trace '{trace_item['trace_id']}'to '{url}' with body \n\t{body}")
 
         if dry_run:
+            fake_work_time = random.random()
+            time.sleep(fake_work_time)
             stats.pending_requests.decrease()
-            req_latency_ms = 1
-
-            Metrics.REQUEST_LATENCY_MS.labels(service).observe(req_latency_ms)
-            local_stats.append(f"{now_ms} \t {req_latency_ms} \t 200 \t {stats.processed_requests.value} \t {stats.pending_requests.value}")
+            r_status = 200
+            req_latency_ms = fake_work_time*1000
         else:
             r = requests.post(url, body, headers={"Content-Type":"application/json"})
             stats.pending_requests.decrease()
-            
-            if r.status_code == 200:
-                logging.debug(f"POST for {url} returned http status {r.status_code}")
-            else:
-                logging.error(f"POST for {url} returned http status {r.status_code}")
-                stats.error_requests.increase()
-
+            r_status = r.status_code
             req_latency_ms = int(r.elapsed.total_seconds()*1000)
 
-            Metrics.REQUEST_LATENCY_MS.labels(service).observe(req_latency_ms)
-            local_stats.append(f"{now_ms} \t {req_latency_ms} \t {r.status_code} \t {stats.processed_requests.value} \t {stats.pending_requests.value}")
+        if r_status == 200:
+            logging.debug(f"POST for {url} returned http status {r_status}")
+        else:
+            logging.error(f"POST for {url} returned http status {r_status}")
+            stats.error_requests.increase()
+
+        Metrics.REQUEST_LATENCY_MS.labels(service).observe(req_latency_ms)
+        local_stats.append(f"{now_ms} \t {req_latency_ms} \t {r_status} \t {stats.processed_requests.value} \t {stats.pending_requests.value}")
         
         local_latency_stats.append(req_latency_ms)
         
