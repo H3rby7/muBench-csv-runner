@@ -53,12 +53,14 @@ def file_runner(runner_parameters, runner_results_file):
 
     logging.info("Reading in and scheduling deployments")
     deployment_ts = CSVHelpers.read_deployment_csv(deployment_ts_file_path, csv_files_delimiter)
+    Metrics.EXPERIMENT_MS_COUNT.set(len(deployment_ts))
     for event in deployment_ts:
         # 'enter' takes the schedule time in seconds, so we divide our MS value by 1000.
         s.enter(event["required_at"]/1000, 1, DeployJob.deploy_svc_cb, argument=(runner_parameters, pool, futures, event['ms']))
 
     logging.info("Reading in and scheduling traces")
     workload = CSVHelpers.read_trace_csv(traces_file_path, csv_files_delimiter)
+    Metrics.EXPERIMENT_TRACE_COUNT.set(len(workload))
     for event in workload:
         # 'enter' takes the schedule time in seconds, so we divide our MS value by 1000.
         # Also delay trace scheduling by 'deployments_headstart_in_s' to ensure services are ready.
@@ -66,7 +68,9 @@ def file_runner(runner_parameters, runner_results_file):
         s.enter(ev_ts, 2, TraceJob.run_trace_cb, argument=(runner_parameters, pool, futures, event, local_stats, local_latency_stats))
 
     start_time = time.time()
-    logging.info("Start Time: %s", datetime.now().strftime("%H:%M:%S.%f - %g/%m/%Y"))
+    timestr = datetime.fromtimestamp(start_time).strftime("%H:%M:%S.%f - %g/%m/%Y")
+
+    logging.info("Start Time: %s", timestr)
     logging.info(f"Deployments headstart is {deployments_headstart_in_s} seconds")
     s.run()
 

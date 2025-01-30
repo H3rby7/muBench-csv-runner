@@ -6,6 +6,12 @@ logger = logging.getLogger(__name__)
 global registry
 registry = CollectorRegistry()
 
+global EXPERIMENT_MS_COUNT
+EXPERIMENT_MS_COUNT = Gauge('mub_experiment_ms_count', 'How many microservices are involved in the experiment', registry=registry)
+
+global EXPERIMENT_TRACE_COUNT
+EXPERIMENT_TRACE_COUNT = Gauge('mub_experiment_trace_count', 'How many traces are used in the experiment', registry=registry)
+
 # TODO: Will need to see how this performs with thousands of services. Might need to remove the 'service' label
 global DEPLOYED_SERVICES
 DEPLOYED_SERVICES = Counter('mub_deployed_services', 'Deployed Services', labelnames=["service"], registry=registry)
