@@ -11,13 +11,16 @@ def get_yamls_for_svc(svc_name, yaml_dir):
 
     Looks for yaml files with the pattern `.+-ms-<svc_name>.yaml`
     """
-    logger.debug(f"Looking for yaml files for service '{svc_name}' in '{yaml_dir}'")
+    logger.debug(f"Looking for YAML files for service '{svc_name}' in '{yaml_dir}'")
     items = list()
     for r, d, f in os.walk(yaml_dir):
         for file in f:
             if f"{svc_name}.yaml" in file:
                 items.append(os.path.join(r, file))
-    logger.debug(f"Found YAML files for service '{svc_name}': '{items}'")
+    if len(items) == 0:
+        logger.error(f"No YAML files were found for service '{svc_name}'")
+    else:
+        logger.debug(f"Found YAML files for service '{svc_name}': '{items}'")
     return items
 
 def get_generic_yamls(yaml_dir):

@@ -11,7 +11,7 @@ def deploy_svc_job(runner_parameters, svc_name):
     yaml_dir_path = runner_parameters['yaml_dir_path']
     dry_run = runner_parameters['dry_run']
     try:
-        logging.info(f"Deploying service '{svc_name}'")
+        logging.info(f"Deploying '{svc_name}'")
         list_of_yamls = K8sYamlFiles.get_yamls_for_svc(svc_name, yaml_dir_path)
         if dry_run:
             logging.debug("Dry-run, not deploying...")
