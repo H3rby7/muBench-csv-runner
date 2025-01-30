@@ -31,6 +31,7 @@ def file_runner(runner_parameters, runner_results_file):
     deployments_headstart_in_s = runner_parameters["deployments_headstart_in_s"] # headstart for deployments prior to the first use of the service
     yaml_dir_path = runner_parameters["yaml_dir_path"] # traces.csv file path
     k8s_namespace = runner_parameters["k8s_namespace"] # experiment namespace in kubernetes
+    dry_run = runner_parameters["dry_run"] # only local testing, no outgoing calls
     csv_files_delimiter = runner_parameters["csv_files_delimiter"]
     thread_pool_size = runner_parameters['thread_pool_size']
 
@@ -43,7 +44,11 @@ def file_runner(runner_parameters, runner_results_file):
     pool = ThreadPoolExecutor(thread_pool_size)
     futures = list()
 
-    K8sPrepare.prepare_namespace(k8s_namespace, yaml_dir_path)
+    if dry_run:
+        logging.debug("Dry-run, no kubernetes to prepare, sleeping shortly to be realistic")
+        time.sleep(5)
+    else:
+        K8sPrepare.prepare_namespace(k8s_namespace, yaml_dir_path)
 
     logging.info("Reading in and scheduling deployments")
     deployment_ts = CSVHelpers.read_deployment_csv(deployment_ts_file_path, csv_files_delimiter)
