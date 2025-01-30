@@ -8,7 +8,7 @@
       "csv_files_delimiter": "\t",
       "url_before_service": "http://mock:8080/",
       "url_after_service": "/api/v1",
-      "dry_run": false,
+      "dry_run": true,
       "thread_pool_size": 4
    },
    "in_cluster": false,

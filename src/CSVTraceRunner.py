@@ -9,6 +9,7 @@ import os
 import importlib
 
 import stats
+import Metrics
 
 import argparse
 import argcomplete
@@ -31,6 +32,7 @@ def file_runner(runner_parameters, runner_results_file):
     deployments_headstart_in_s = runner_parameters["deployments_headstart_in_s"] # headstart for deployments prior to the first use of the service
     yaml_dir_path = runner_parameters["yaml_dir_path"] # traces.csv file path
     k8s_namespace = runner_parameters["k8s_namespace"] # experiment namespace in kubernetes
+    dry_run = runner_parameters["dry_run"] # only local testing, no outgoing calls
     csv_files_delimiter = runner_parameters["csv_files_delimiter"]
     thread_pool_size = runner_parameters['thread_pool_size']
 
@@ -43,29 +45,53 @@ def file_runner(runner_parameters, runner_results_file):
     pool = ThreadPoolExecutor(thread_pool_size)
     futures = list()
 
-    K8sPrepare.prepare_namespace(k8s_namespace, yaml_dir_path)
+    if dry_run:
+        logging.debug("Dry-run, no kubernetes to prepare, sleeping shortly to be realistic")
+        time.sleep(5)
+    else:
+        K8sPrepare.prepare_namespace(k8s_namespace, yaml_dir_path)
 
     logging.info("Reading in and scheduling deployments")
     deployment_ts = CSVHelpers.read_deployment_csv(deployment_ts_file_path, csv_files_delimiter)
+    Metrics.EXPERIMENT_MS_COUNT.set(len(deployment_ts))
     for event in deployment_ts:
         # 'enter' takes the schedule time in seconds, so we divide our MS value by 1000.
         s.enter(event["required_at"]/1000, 1, DeployJob.deploy_svc_cb, argument=(runner_parameters, pool, futures, event['ms']))
 
     logging.info("Reading in and scheduling traces")
     workload = CSVHelpers.read_trace_csv(traces_file_path, csv_files_delimiter)
+    Metrics.EXPERIMENT_TRACE_COUNT.set(len(workload))
+    max_ev_ts = 0
     for event in workload:
         # 'enter' takes the schedule time in seconds, so we divide our MS value by 1000.
         # Also delay trace scheduling by 'deployments_headstart_in_s' to ensure services are ready.
         ev_ts = (event["timestamp"]/1000) + deployments_headstart_in_s
+        if (ev_ts > max_ev_ts):
+            max_ev_ts = ev_ts
         s.enter(ev_ts, 2, TraceJob.run_trace_cb, argument=(runner_parameters, pool, futures, event, local_stats, local_latency_stats))
 
     start_time = time.time()
-    logging.info("Start Time: %s", datetime.now().strftime("%H:%M:%S.%f - %g/%m/%Y"))
+    Metrics.START_TIME_DEPLOYMENTS.set(start_time)
+    logging.info("Start Time: %s", datetime.fromtimestamp(start_time).strftime("%H:%M:%S.%f - %g/%m/%Y"))
+
     logging.info(f"Deployments headstart is {deployments_headstart_in_s} seconds")
+
+    trace_start_time = start_time + deployments_headstart_in_s
+    Metrics.START_TIME_TRACES.set(trace_start_time)
+    logging.info("Estimated trace start: %s", datetime.fromtimestamp(trace_start_time).strftime("%H:%M:%S.%f - %g/%m/%Y"))
+
+    finished_time_estimated = start_time + max_ev_ts
+    Metrics.FINISHED_TIME_ESTIMATED.set(finished_time_estimated)
+    logging.info("Estimated duration (sec): %.0f", max_ev_ts)
+    logging.info("Estimated end time: %s", datetime.fromtimestamp(finished_time_estimated).strftime("%H:%M:%S.%f - %g/%m/%Y"))
     s.run()
 
     wait(futures)
-    run_duration_sec = time.time() - start_time
+
+    finished_time = time.time()
+    Metrics.FINISHED_TIME.set(finished_time)
+
+    run_duration_sec = finished_time - start_time
     avg_latency = 1.0*sum(local_latency_stats)/len(local_latency_stats)
 
     logging.info("###############################################")
@@ -151,7 +177,13 @@ stats.error_requests.value = 0
 
 timestr = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 runner_results_file = f"{output_path}/{result_file_prefix}_{timestr}.csv"
+
+Metrics.start_server(8080)
+
+# file_runner is a blocking call
 file_runner(runner_parameters, runner_results_file)
+# so the code after this is executed when file_runner is done.
+
 try:
     logging.debug("Writing results to file '%s'", runner_results_file)
     with open(runner_results_file, "w") as f:
@@ -165,5 +197,6 @@ except Exception as err:
 logging.info("###############################################")
 logging.info("###########   DONE Forrest DONE!!   ###########")
 logging.info("###############################################")
-time.sleep(1)
+# TODO: Set back to smaller value when done testing metrics endpoint
+time.sleep(120)
 exit(0)

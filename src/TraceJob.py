@@ -34,6 +34,8 @@ import time
 from TimingError import TimingError
 import requests
 import stats
+import Metrics
+import random
 
 import logging
 logger = logging.getLogger(__name__)
@@ -49,31 +51,45 @@ def run_trace_job(runner_parameters, trace_item, local_stats, local_latency_stat
     url_before_service = runner_parameters['url_before_service']
     url_after_service = runner_parameters['url_after_service']
     dry_run = runner_parameters['dry_run']
+    ingress = trace_item['ingress_service']
 
     stats.processed_requests.increase()
+    Metrics.PROCESSED_REQUESTS.inc()
     try:
         now_ms = time.time_ns() // 1_000_000
         
-        url = f"{url_before_service}{trace_item['ingress_service']}{url_after_service}"
+        url = f"{url_before_service}{ingress}{url_after_service}"
         body = trace_item['as_json']
         logging.debug(f"POSTing trace '{trace_item['trace_id']}'to '{url}' with body \n\t{body}")
 
         if dry_run:
+            # Fake processing time 0-5 seconds
+            fake_work_time = random.random()*5
+            time.sleep(fake_work_time)
+            # Update stats&metrics
             stats.pending_requests.decrease()
-            req_latency_ms = 1
-            stats.append(f"{now_ms} \t {req_latency_ms} \t 200 \t {stats.processed_requests.value} \t {stats.pending_requests.value}")
+            Metrics.PENDING_REQUESTS.dec()
+            # Fake response metadata
+            r_status = 200
+            req_latency_ms = fake_work_time*1000
         else:
             r = requests.post(url, body, headers={"Content-Type":"application/json"})
+            # Update stats&metrics
             stats.pending_requests.decrease()
-            
-            if r.status_code == 200:
-                logging.debug(f"POST for {url} returned http status {r.status_code}")
-            else:
-                logging.error(f"POST for {url} returned http status {r.status_code}")
-                stats.error_requests.increase()
-
+            Metrics.PENDING_REQUESTS.dec()
+            # Get response metadata
+            r_status = r.status_code
             req_latency_ms = int(r.elapsed.total_seconds()*1000)
-            local_stats.append(f"{now_ms} \t {req_latency_ms} \t {r.status_code} \t {stats.processed_requests.value} \t {stats.pending_requests.value}")
+
+        if r_status == 200:
+            logging.debug(f"POST for {url} returned http status {r_status}")
+        else:
+            logging.error(f"POST for {url} returned http status {r_status}")
+            stats.error_requests.increase()
+            Metrics.ERROR_REQUESTS.inc()
+
+        Metrics.REQUEST_LATENCY_MS.labels(ingress).observe(req_latency_ms)
+        local_stats.append(f"{now_ms} \t {req_latency_ms} \t {r_status} \t {stats.processed_requests.value} \t {stats.pending_requests.value}")
         
         local_latency_stats.append(req_latency_ms)
         
@@ -94,9 +110,11 @@ def run_trace_cb(runner_parameters, v_pool, v_futures, trace_item, local_stats, 
         worker = v_pool.submit(run_trace_job, runner_parameters, trace_item, local_stats, local_latency_stats)
         v_futures.append(worker)
         stats.pending_requests.increase()
+        Metrics.PENDING_REQUESTS.inc()
         if stats.pending_requests.value > thread_pool_size: 
             # maximum capacity of thread pool reached, request is queued (not an issue for greedy runner)
             stats.timing_error_requests.increase()
+            Metrics.TIMING_ERROR_REQUESTS.inc()
             raise TimingError(trace_item['timestamp'])
     except TimingError as err:
         logging.error("Error: %s" % err)
