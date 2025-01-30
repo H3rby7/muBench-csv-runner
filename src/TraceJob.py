@@ -61,7 +61,7 @@ def run_trace_job(runner_parameters, trace_item, local_stats, local_latency_stat
         if dry_run:
             stats.pending_requests.decrease()
             req_latency_ms = 1
-            stats.append(f"{now_ms} \t {req_latency_ms} \t 200 \t {stats.processed_requests.value} \t {stats.pending_requests.value}")
+            local_stats.append(f"{now_ms} \t {req_latency_ms} \t 200 \t {stats.processed_requests.value} \t {stats.pending_requests.value}")
         else:
             r = requests.post(url, body, headers={"Content-Type":"application/json"})
             stats.pending_requests.decrease()
