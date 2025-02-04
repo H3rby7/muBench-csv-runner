@@ -163,6 +163,11 @@ try:
         run_after_workload = getattr(importlib.import_module(params["AfterWorkloadFunction"]["file_path"].split("/")[-1]),
                                      params["AfterWorkloadFunction"]["function_name"])
 
+    if params['ttlMinutesAfterFinished']:
+        ttlMinutesAfterFinished = params["ttlMinutesAfterFinished"]
+    else:
+        ttlMinutesAfterFinished = 60
+
 except Exception as err:
     logging.error("ERROR: in Runner Parameters,", err)
     exit(1)
@@ -197,5 +202,13 @@ except Exception as err:
 logging.info("###############################################")
 logging.info("###########   DONE Forrest DONE!!   ###########")
 logging.info("###############################################")
-time.sleep(1)
+
+slept_minutes = 0
+while slept_minutes < ttlMinutesAfterFinished:
+    logging.info("###############################################")
+    logging.info("###########  SLEEP Forrest SLEEP!!  ###########")
+    logging.info("###############################################")
+    time.sleep(60)
+    slept_minutes += 1
+
 exit(0)
