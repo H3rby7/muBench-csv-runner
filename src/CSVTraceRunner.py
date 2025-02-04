@@ -53,14 +53,14 @@ def file_runner(runner_parameters, runner_results_file):
 
     logging.info("Reading in and scheduling deployments")
     deployment_ts = CSVHelpers.read_deployment_csv(deployment_ts_file_path, csv_files_delimiter)
-    Metrics.EXPERIMENT_MS_COUNT.set(len(deployment_ts))
+    Metrics.EXPERIMENT_MS_COUNT.labels(stats.experiment_id).set(len(deployment_ts))
     for event in deployment_ts:
         # 'enter' takes the schedule time in seconds, so we divide our MS value by 1000.
         s.enter(event["required_at"]/1000, 1, DeployJob.deploy_svc_cb, argument=(runner_parameters, pool, futures, event['ms']))
 
     logging.info("Reading in and scheduling traces")
     workload = CSVHelpers.read_trace_csv(traces_file_path, csv_files_delimiter)
-    Metrics.EXPERIMENT_TRACE_COUNT.set(len(workload))
+    Metrics.EXPERIMENT_TRACE_COUNT.labels(stats.experiment_id).set(len(workload))
     max_ev_ts = 0
     for event in workload:
         # 'enter' takes the schedule time in seconds, so we divide our MS value by 1000.
@@ -71,17 +71,17 @@ def file_runner(runner_parameters, runner_results_file):
         s.enter(ev_ts, 2, TraceJob.run_trace_cb, argument=(runner_parameters, pool, futures, event, local_stats, local_latency_stats))
 
     start_time = time.time()
-    Metrics.START_TIME_DEPLOYMENTS.set(start_time)
+    Metrics.START_TIME_DEPLOYMENTS.labels(stats.experiment_id).set(start_time)
     logging.info("Start Time: %s", datetime.fromtimestamp(start_time).strftime("%H:%M:%S.%f - %g/%m/%Y"))
 
     logging.info(f"Deployments headstart is {deployments_headstart_in_s} seconds")
 
     trace_start_time = start_time + deployments_headstart_in_s
-    Metrics.START_TIME_TRACES.set(trace_start_time)
+    Metrics.START_TIME_TRACES.labels(stats.experiment_id).set(trace_start_time)
     logging.info("Estimated trace start: %s", datetime.fromtimestamp(trace_start_time).strftime("%H:%M:%S.%f - %g/%m/%Y"))
 
     finished_time_estimated = start_time + max_ev_ts
-    Metrics.FINISHED_TIME_ESTIMATED.set(finished_time_estimated)
+    Metrics.FINISHED_TIME_ESTIMATED.labels(stats.experiment_id).set(finished_time_estimated)
     logging.info("Estimated duration (sec): %.0f", max_ev_ts)
     logging.info("Estimated end time: %s", datetime.fromtimestamp(finished_time_estimated).strftime("%H:%M:%S.%f - %g/%m/%Y"))
     s.run()
@@ -89,7 +89,7 @@ def file_runner(runner_parameters, runner_results_file):
     wait(futures)
 
     finished_time = time.time()
-    Metrics.FINISHED_TIME.set(finished_time)
+    Metrics.FINISHED_TIME.labels(stats.experiment_id).set(finished_time)
 
     run_duration_sec = finished_time - start_time
     avg_latency = 1.0*sum(local_latency_stats)/len(local_latency_stats)
@@ -180,8 +180,7 @@ stats.processed_requests.value = 0
 stats.timing_error_requests.value = 0
 stats.error_requests.value = 0
 
-timestr = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-runner_results_file = f"{output_path}/{result_file_prefix}_{timestr}.csv"
+runner_results_file = f"{output_path}/{result_file_prefix}_{stats.experiment_id}.csv"
 
 Metrics.start_server(8080)
 
