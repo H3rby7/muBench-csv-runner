@@ -163,7 +163,7 @@ try:
         run_after_workload = getattr(importlib.import_module(params["AfterWorkloadFunction"]["file_path"].split("/")[-1]),
                                      params["AfterWorkloadFunction"]["function_name"])
 
-    if params['ttlMinutesAfterFinished']:
+    if 'ttlMinutesAfterFinished' in params.keys():
         ttlMinutesAfterFinished = params["ttlMinutesAfterFinished"]
     else:
         ttlMinutesAfterFinished = 60
